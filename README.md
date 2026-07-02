@@ -1,4 +1,6 @@
-# BA AI Quant
+# BA-AI-QUANT
+
+BA工作坊-AI量化策略公益课-作业。
 
 BA workshop weekly assignments and quantitative analysis artifacts.
 
