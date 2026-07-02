@@ -1,0 +1,76 @@
+[
+  {
+    "market": "A股",
+    "code": "688981.SH",
+    "csv": "smic_a_daily.csv",
+    "rows": 237,
+    "start": "20250702",
+    "end": "20260702",
+    "first_close": 86.1,
+    "last_close": 144.1,
+    "close_change_pct": 67.36353077816493,
+    "avg_return_pct": 0.2675691983122362,
+    "median_return_pct": -0.0086,
+    "max_drawdown_pct": -34.503675158781135,
+    "up_days": 117,
+    "down_days": 119,
+    "flat_days": 1,
+    "up_ratio_pct": 49.36708860759494,
+    "avg_vol": 676992.5358227848,
+    "avg_amount": 8186119.888160338,
+    "total_vol": 160447230.98999998,
+    "total_amount": 1940110413.494,
+    "best_day": {
+      "date": "20260525",
+      "pct_chg": 18.7847,
+      "close": 156.0
+    },
+    "worst_day": {
+      "date": "20250909",
+      "pct_chg": -10.2562,
+      "close": 102.99
+    },
+    "highest_vol_day": {
+      "date": "20260525",
+      "vol": 2521802.26,
+      "close": 156.0
+    }
+  },
+  {
+    "market": "港股",
+    "code": "00981.HK",
+    "csv": "smic_hk_daily.csv",
+    "rows": 246,
+    "start": "20250702",
+    "end": "20260702",
+    "first_close": 43.55,
+    "last_close": 80.4,
+    "close_change_pct": 84.61538461538464,
+    "avg_return_pct": 0.3062195121951218,
+    "median_return_pct": 0.13,
+    "max_drawdown_pct": -44.3163097199341,
+    "up_days": 126,
+    "down_days": 118,
+    "flat_days": 2,
+    "up_ratio_pct": 51.21951219512195,
+    "avg_vol": 98128679.24796748,
+    "avg_amount": 6745346910.543656,
+    "total_vol": 24139655095.0,
+    "total_amount": 1659355339993.7395,
+    "best_day": {
+      "date": "20251002",
+      "pct_chg": 12.7,
+      "close": 89.65
+    },
+    "worst_day": {
+      "date": "20260702",
+      "pct_chg": -10.07,
+      "close": 80.4
+    },
+    "highest_vol_day": {
+      "date": "20260526",
+      "vol": 371835947.0,
+      "close": 84.4
+    }
+  }
+]
