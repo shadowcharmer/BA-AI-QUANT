@@ -1,0 +1,3 @@
+﻿market,rows,columns,start_date,end_date,calendar_days,trading_days,ts_codes,total_missing,market_note
+A股,237,11,2025-07-02,2026-07-02,366,237,688981.SH,0,A股以人民币交易，涨跌停制度和成交量单位与港股不同。
+港股,246,11,2025-07-02,2026-07-02,366,246,00981.HK,0,港股以港币交易，交易机制、投资者结构和成交量口径与A股不同。

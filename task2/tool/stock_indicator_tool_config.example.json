@@ -1,0 +1,30 @@
+{
+  "profiles": {
+    "local_example": {
+      "label": "本地中芯国际示例",
+      "kind": "local_example",
+      "description": "不联网，读取 task1 中已保存的中芯国际 A 股或港股 CSV。"
+    },
+    "mcp_http_example": {
+      "label": "HTTP MCP 示例",
+      "kind": "http",
+      "url": "http://127.0.0.1:9000/fetch_daily",
+      "method": "POST",
+      "tool": "daily",
+      "headers": {},
+      "params": {},
+      "description": "后端会向该 URL POST market、ts_code、start_date、end_date、tool、params。返回 JSON 需包含 rows 或 data。"
+    },
+    "mcp_command_example": {
+      "label": "命令式 MCP 示例",
+      "kind": "command",
+      "command": [
+        "python3",
+        "/absolute/path/to/your_mcp_fetch_daily_adapter.py"
+      ],
+      "tool": "daily",
+      "params": {},
+      "description": "后端会把请求 JSON 写入 stdin，并读取 stdout JSON。请复制本文件为 stock_indicator_tool_config.json 后修改。"
+    }
+  }
+}

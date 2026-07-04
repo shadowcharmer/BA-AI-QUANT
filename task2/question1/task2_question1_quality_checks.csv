@@ -1,0 +1,17 @@
+﻿market,check,value
+A股,duplicate_trade_date,0
+A股,unique_ts_code_count,1
+A股,high_less_than_low,0
+A股,non_positive_price,0
+A股,negative_volume,0
+A股,negative_amount,0
+A股,change_mismatch_gt_0_01,0
+A股,pct_chg_mismatch_gt_0_01,0
+港股,duplicate_trade_date,0
+港股,unique_ts_code_count,1
+港股,high_less_than_low,0
+港股,non_positive_price,0
+港股,negative_volume,0
+港股,negative_amount,0
+港股,change_mismatch_gt_0_01,0
+港股,pct_chg_mismatch_gt_0_01,0
