@@ -9,8 +9,9 @@ BA workshop weekly assignments and quantitative analysis artifacts.
 - `task1/`: SMIC A-share and H-share daily trading data dashboard.
 - `task2/`: SMIC data diagnostics, technical indicator analysis, and an interactive indicator tool.
 - `task3/`: Double moving-average strategy backtest dashboard, CLI engine, and sample data.
+- `task4/`: Turtle trading strategy backtest dashboard, CLI engine, and sample data.
 
-Future assignments should follow the same naming pattern: `task4/`, `task5/`, etc.
+Future assignments should follow the same naming pattern: `task5/`, `task6/`, etc.
 
 ## Task 1
 
@@ -135,4 +136,31 @@ Refresh BYD A-share data:
 
 ```bash
 python3 -B task3/download_byd_a_data.py
+```
+
+## Task 4
+
+Open `task4/turtle_strategy_dashboard.html` in a browser to use the local turtle trading strategy backtest dashboard.
+
+Included files:
+
+- `task4/README.md`: Detailed task 4 usage guide.
+- `task4/turtle_strategy_dashboard.html`: Interactive local HTML dashboard.
+- `task4/turtle_backtest_engine.py`: CLI backtest engine for reproducible runs.
+- `task4/sample_data/smic_a_daily_qfq.csv`: Bundled SMIC A-share front-adjusted example CSV.
+- `task4/sample_data/byd_a_daily_qfq.csv`: Bundled BYD A-share front-adjusted example CSV.
+
+The dashboard supports:
+
+- Data quality checks, adjustment hints, and turtle-strategy suitability notes.
+- Configurable backtest range, initial cash, risk-free rate, Donchian entry window, ATR window, unit risk, ATR stop, pyramid add step, reverse breakout exit window, and cost settings.
+- Standard turtle risk rules: 1% risk per unit, 2ATR stop, 0.5ATR pyramid adds, maximum 4 units for the single tested symbol, and portfolio-level rule notes.
+- Buy/add/sell markers with tooltip details and interactive legends.
+- Price, high/low channel, ATR stop, equity, benchmark, holding unit, and drawdown charts.
+- Trade list, signal log, final position, performance metrics, and HTML/PDF report export.
+
+Run the CLI backtest with the bundled SMIC data:
+
+```bash
+python3 -B task4/turtle_backtest_engine.py task4/sample_data/smic_a_daily_qfq.csv --out-dir task4/exports_smic_default
 ```

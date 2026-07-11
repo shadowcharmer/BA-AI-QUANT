@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>海龟交易策略回测看板</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; max-width: 100%; overflow-x: hidden; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "Noto Sans CJK SC", sans-serif; color: #1f2937; background: #f5f7fb; }
+    .app { display: grid; grid-template-columns: 390px minmax(0, 1fr); min-height: 100vh; }
+    aside { background: #fff; border-right: 1px solid #d8dee9; padding: 16px; overflow-y: auto; max-height: 100vh; position: sticky; top: 0; }
+    main { min-width: 0; padding: 18px 24px 40px; }
+    h1 { margin: 0 0 8px; font-size: 22px; }
+    h2 { margin: 0 0 10px; font-size: 18px; }
+    p { line-height: 1.55; }
+    label { display: block; font-size: 12px; color: #52606d; margin: 9px 0 4px; }
+    input, button { width: 100%; font: inherit; }
+    input { border: 1px solid #bac5d4; border-radius: 6px; padding: 7px 8px; background: #fff; }
+    button { border: 1px solid #2563eb; background: #2563eb; color: #fff; border-radius: 6px; padding: 8px 10px; cursor: pointer; font-weight: 700; }
+    button.secondary { background: #fff; color: #1f2937; border-color: #bac5d4; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .stack { display: grid; gap: 8px; }
+    .section-title { font-size: 12px; color: #617286; font-weight: 800; margin: 16px 0 4px; text-transform: uppercase; }
+    .hint { font-size: 12px; color: #66788a; line-height: 1.5; }
+    .card { background: #fff; border: 1px solid #d8dee9; border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+    .status { font-size: 12px; border-radius: 6px; padding: 9px; background: #edf2f7; color: #334e68; white-space: pre-wrap; }
+    .status.ok { background: #e6f4ea; color: #176b35; }
+    .status.warn { background: #fff5d6; color: #7a4f01; }
+    .status.err { background: #fdecea; color: #9f1c12; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+    .tabs button { width: auto; background: #fff; color: #253044; border-color: #bac5d4; padding: 7px 11px; }
+    .tabs button.active { background: #253044; color: #fff; border-color: #253044; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .metric { background: #f8fafc; border: 1px solid #e5e9f0; border-radius: 7px; padding: 10px; min-width: 0; }
+    .metric .label { color: #66788a; font-size: 12px; }
+    .metric .value { font-size: 18px; font-weight: 800; margin-top: 3px; overflow-wrap: anywhere; }
+    .chart { width: 100%; height: 440px; border: 1px solid #e2e8f0; border-radius: 7px; background: #fff; overflow: hidden; }
+    svg { width: 100%; height: 100%; display: block; }
+    .grid-line { stroke: #edf2f7; stroke-width: 1; }
+    .axis { stroke: #a5b1c2; stroke-width: 1; }
+    .axis-text { fill: #66788a; font-size: 11px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px 10px; margin: 8px 0 4px; font-size: 12px; color: #52606d; }
+    .legend button { width: auto; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #d8dee9; background: #fff; color: #253044; border-radius: 5px; padding: 4px 7px; font-size: 12px; font-weight: 650; }
+    .legend button.off { color: #8795a6; background: #f8fafc; text-decoration: line-through; }
+    .swatch { width: 18px; height: 3px; display: inline-block; }
+    .chart-tooltip { position: fixed; display: none; z-index: 50; max-width: 360px; pointer-events: none; background: rgba(17, 24, 39, .94); color: #fff; border-radius: 7px; padding: 9px 10px; font-size: 12px; line-height: 1.5; box-shadow: 0 8px 24px rgba(15, 23, 42, .22); white-space: pre-line; }
+    .hover-dot { opacity: 0; cursor: crosshair; }
+    .hover-dot:hover { opacity: .22; }
+    .trade-hit { opacity: 0; cursor: pointer; }
+    .trade-marker { pointer-events: none; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+    .toolbar button { width: auto; }
+    .toolbar input { width: min(320px, 100%); }
+    .table-wrap { overflow: auto; border: 1px solid #e2e8f0; border-radius: 7px; max-height: 520px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; }
+    th, td { padding: 7px 8px; border-bottom: 1px solid #edf2f7; text-align: left; white-space: nowrap; }
+    th { position: sticky; top: 0; background: #f8fafc; z-index: 1; color: #52606d; }
+    .pill { display: inline-flex; align-items: center; padding: 3px 7px; border-radius: 999px; background: #edf2f7; color: #334e68; font-size: 12px; margin: 2px 4px 2px 0; }
+    .empty { color: #66788a; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 7px; padding: 14px; }
+    @media print {
+      .app { display: block; }
+      aside, .tabs, .toolbar, .no-print { display: none !important; }
+      main { padding: 0; }
+      .tab-pane { display: block !important; }
+      .card { break-inside: avoid; }
+    }
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      aside { position: static; max-height: none; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .row, .row3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <h1>海龟策略回测看板</h1>
+    <p class="hint">导入单只股票日线 CSV 后执行回测。策略采用唐奇安通道突破入场、ATR 单位头寸、2ATR 动态止损、0.5ATR 金字塔加仓和反向突破离场。</p>
+
+    <div class="section-title">数据导入</div>
+    <label>CSV 文件</label>
+    <input id="csvFile" type="file" accept=".csv,text/csv">
+    <p class="hint">必需字段：trade_date, open, high, low, close, vol。数据质量会判断缺失、重复、价格关系、复权迹象，以及是否适合海龟策略。</p>
+    <div id="dataStatus" class="status">等待导入数据。若通过本地服务器打开，将尝试加载 task4/sample_data/smic_a_daily_qfq.csv。</div>
+
+    <div class="section-title">回测基础参数</div>
+    <div class="row">
+      <div><label>开始日期</label><input id="startDate" type="date"></div>
+      <div><label>结束日期</label><input id="endDate" type="date"></div>
+    </div>
+    <label>初始资金</label>
+    <input id="initialCash" type="number" value="100000" min="1" step="1000">
+    <div class="row">
+      <div><label>每手股数</label><input id="lotSize" type="number" value="100" min="1" step="1"></div>
+      <div><label>无风险年化收益率</label><input id="riskFreeRate" type="number" value="0.02" step="0.001"></div>
+    </div>
+
+    <div class="section-title">突破入场系统</div>
+    <label>唐奇安通道突破 N</label>
+    <input id="entryWindow" type="number" value="20" min="2" step="1">
+
+    <div class="section-title">ATR</div>
+    <label>ATR 参数 N</label>
+    <input id="atrWindow" type="number" value="20" min="2" step="1">
+
+    <div class="section-title">单位头寸计算</div>
+    <label>每单位账户风险比例</label>
+    <input id="riskPerUnit" type="number" value="0.01" min="0" max="1" step="0.001">
+    <p class="hint">单位头寸 = 账户资金 x 1% / ATR，并按每手股数向下取整。</p>
+
+    <div class="section-title">ATR 动态止损系统</div>
+    <label>止损 ATR 倍数</label>
+    <input id="stopAtrMultiple" type="number" value="2" min="0.1" step="0.1">
+    <p class="hint">止损价 = 最近一次入场或加仓成交价 - 2 x ATR，触发止损必须立即执行。</p>
+
+    <div class="section-title">仓位管理</div>
+    <label>风险预算比例</label>
+    <input id="accountRiskPct" type="number" value="0.01" min="0" max="1" step="0.001">
+    <p class="hint">可买股数 = 账户资金 x 1% / ATR。这里与单位头寸风险比例保持一致，修改任一项会同步。</p>
+
+    <div class="section-title">加仓管理</div>
+    <div class="row">
+      <div><label>加仓间隔 ATR 倍数</label><input id="addAtrStep" type="number" value="0.5" min="0.1" step="0.1"></div>
+      <div><label>最多持有单位</label><input id="maxUnits" type="number" value="4" min="1" max="4" step="1"></div>
+    </div>
+    <p class="hint">入场 1 个单位，价格每涨 0.5 个 ATR 加仓 1 个单位，最多持有 4 个单位。</p>
+
+    <div class="section-title">止盈离场</div>
+    <label>反向突破 N</label>
+    <input id="exitWindow" type="number" value="10" min="2" step="1">
+    <p class="hint">持仓后跌破 N 日最低价，触发离场信号。</p>
+
+    <div class="section-title">风险控制</div>
+    <p class="hint">执行标准海龟严格风险控制：单一市场最多 4 个单位；高度相关市场合计不超过 6 个单位；同一方向所有头寸合计不超过 12 个单位；账户总风险不超过 12%。本看板为单标的回测，会强制最多 4 个单位，并展示组合级规则说明。</p>
+
+    <div class="section-title">交易成本</div>
+    <div class="row">
+      <div><label>手续费率</label><input id="commissionRate" type="number" value="0.0003" min="0" step="0.0001"></div>
+      <div><label>最低手续费</label><input id="minCommission" type="number" value="0" min="0" step="0.1"></div>
+    </div>
+    <div class="row">
+      <div><label>卖出印花税率</label><input id="taxRate" type="number" value="0.0005" min="0" step="0.0001"></div>
+      <div><label>滑点率</label><input id="slippageRate" type="number" value="0.0002" min="0" step="0.0001"></div>
+    </div>
+
+    <div class="stack" style="margin-top:14px">
+      <button id="runBtn">执行回测</button>
+      <button class="secondary" id="resetBtn">重置参数</button>
+      <button class="secondary" id="exportHtmlBtn" disabled>导出 HTML 报告</button>
+      <button class="secondary" id="printBtn" disabled>打印 / 导出 PDF</button>
+    </div>
+  </aside>
+
+  <main>
+    <section class="card">
+      <h2>数据质量、复权与海龟适配判断</h2>
+      <div id="qualityBox" class="empty">导入数据后显示字段、日期、缺失值、价格合理性、复权判断、是否适合海龟策略及原因。</div>
+    </section>
+
+    <section class="card">
+      <h2>绩效指标</h2>
+      <div id="metricBox" class="empty">执行回测后显示总收益、年化收益、超额收益、最大回撤、胜率、盈亏比和夏普比率。</div>
+    </section>
+
+    <div class="tabs no-print">
+      <button class="active" data-tab="charts">图表</button>
+      <button data-tab="trades">交易明细</button>
+      <button data-tab="signals">信号日志</button>
+      <button data-tab="params">参数快照</button>
+    </div>
+
+    <section id="charts" class="tab-pane active">
+      <div class="card">
+        <h2>股价、唐奇安通道、ATR 止损和交易信号</h2>
+        <div class="legend" id="priceLegend"></div>
+        <div id="priceChart" class="chart"></div>
+      </div>
+      <div class="card">
+        <h2>净值、基准、持仓单位和回撤</h2>
+        <div class="legend" id="equityLegend"></div>
+        <div id="equityChart" class="chart"></div>
+      </div>
+    </section>
+
+    <section id="trades" class="tab-pane">
+      <div class="card">
+        <div class="toolbar">
+          <input id="tradeSearch" placeholder="筛选交易明细">
+          <button class="secondary" id="exportTradesBtn" disabled>导出交易 CSV</button>
+        </div>
+        <div id="tradeTable"></div>
+      </div>
+    </section>
+
+    <section id="signals" class="tab-pane">
+      <div class="card">
+        <div class="toolbar">
+          <input id="signalSearch" placeholder="筛选信号日志">
+          <button class="secondary" id="exportSignalsBtn" disabled>导出信号 CSV</button>
+        </div>
+        <div id="signalTable"></div>
+      </div>
+    </section>
+
+    <section id="params" class="tab-pane">
+      <div class="card">
+        <h2>本次参数快照</h2>
+        <div id="paramBox" class="empty">执行回测后显示。</div>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="chartTooltip" class="chart-tooltip"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const requiredFields = ["trade_date", "open", "high", "low", "close", "vol"];
+const numericFields = ["open", "high", "low", "close", "pre_close", "vol", "amount", "adj_factor", "qfq_factor", "cum_adjfactor"];
+let dataset = [], dataMeta = {}, lastResult = null, chartVisibility = {};
+
+function fmtNum(value, digits=2) {
+  if (!Number.isFinite(value)) return "";
+  return value.toLocaleString("zh-CN", { maximumFractionDigits: digits, minimumFractionDigits: digits });
+}
+function fmtPct(value, digits=2) {
+  if (!Number.isFinite(value)) return "";
+  return (value * 100).toFixed(digits) + "%";
+}
+function escapeHtml(text) {
+  return String(text == null ? "" : text).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+function setStatus(text, kind="") {
+  $("dataStatus").className = "status" + (kind ? " " + kind : "");
+  $("dataStatus").textContent = text;
+}
+function showChartTooltip(event, text) {
+  const tip = $("chartTooltip");
+  tip.textContent = text;
+  tip.style.display = "block";
+  const rect = tip.getBoundingClientRect();
+  let left = event.clientX + 14, top = event.clientY + 14;
+  if (left + rect.width > window.innerWidth - 8) left = event.clientX - rect.width - 14;
+  if (top + rect.height > window.innerHeight - 8) top = event.clientY - rect.height - 14;
+  tip.style.left = Math.max(8, left) + "px";
+  tip.style.top = Math.max(8, top) + "px";
+}
+function hideChartTooltip() { $("chartTooltip").style.display = "none"; }
+function toDateText(value) {
+  const raw = String(value == null ? "" : value).trim();
+  if (/^\d{8}$/.test(raw)) return `${raw.slice(0,4)}-${raw.slice(4,6)}-${raw.slice(6,8)}`;
+  if (/^\d{4}-\d{1,2}-\d{1,2}/.test(raw)) {
+    const d = new Date(raw);
+    if (!Number.isNaN(d.getTime())) return d.toISOString().slice(0,10);
+  }
+  const d = new Date(raw);
+  return Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0,10);
+}
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i], next = text[i + 1];
+    if (ch === '"' && inQuotes && next === '"') { field += '"'; i++; }
+    else if (ch === '"') inQuotes = !inQuotes;
+    else if (ch === "," && !inQuotes) { row.push(field); field = ""; }
+    else if ((ch === "\n" || ch === "\r") && !inQuotes) {
+      if (ch === "\r" && next === "\n") i++;
+      row.push(field); field = "";
+      if (row.some(v => String(v).trim() !== "")) rows.push(row);
+      row = [];
+    } else field += ch;
+  }
+  row.push(field);
+  if (row.some(v => String(v).trim() !== "")) rows.push(row);
+  if (rows.length < 2) return [];
+  const headers = rows[0].map(h => h.trim().replace(/^\ufeff/, ""));
+  return rows.slice(1).map(values => Object.fromEntries(headers.map((h, i) => [h, values[i] == null ? "" : values[i]])));
+}
+function normalizeRows(rows, fileName="") {
+  const mapped = rows.map(r => {
+    const obj = {};
+    Object.keys(r).forEach(k => obj[k.trim().replace(/^\ufeff/, "")] = r[k]);
+    if (!obj.trade_date && obj.date) obj.trade_date = obj.date;
+    if (!obj.vol && obj.volume) obj.vol = obj.volume;
+    obj.date = toDateText(obj.trade_date);
+    numericFields.forEach(f => {
+      if (obj[f] !== undefined && obj[f] !== "") obj[f] = Number(String(obj[f]).replace(/,/g, ""));
+    });
+    return obj;
+  }).filter(r => r.date);
+  mapped.sort((a, b) => a.date.localeCompare(b.date));
+  mapped.forEach((r, i) => {
+    if (!Number.isFinite(r.pre_close)) r.pre_close = i ? mapped[i - 1].close : r.close;
+    r.index = i;
+  });
+  const codeRow = mapped.find(r => r.ts_code);
+  const tsCode = codeRow ? codeRow.ts_code : "";
+  const nameRow = mapped.find(r => r.name || r.stock_name);
+  const name = (nameRow && (nameRow.name || nameRow.stock_name)) || (tsCode === "688981.SH" ? "中芯国际" : "未知名称");
+  return { rows: mapped, meta: { fileName, tsCode, name } };
+}
+function qualityCheck(rows, meta) {
+  const messages = [];
+  const headers = new Set(Object.keys(rows[0] || {}));
+  const missingFields = requiredFields.filter(f => !headers.has(f));
+  if (missingFields.length) messages.push({ kind: "err", text: `缺少必需字段：${missingFields.join(", ")}` });
+  const dateSet = new Set();
+  let duplicateDates = 0, missingCore = 0, badOhlc = 0, badVolume = 0, jumpCount = 0;
+  const returns = [];
+  rows.forEach((r, i) => {
+    if (dateSet.has(r.date)) duplicateDates++;
+    dateSet.add(r.date);
+    ["open", "high", "low", "close", "vol"].forEach(f => { if (!Number.isFinite(r[f])) missingCore++; });
+    if (Number.isFinite(r.high) && Number.isFinite(r.low) && Number.isFinite(r.open) && Number.isFinite(r.close)) {
+      if (!(r.high >= r.low && r.high >= r.open && r.high >= r.close && r.low <= r.open && r.low <= r.close)) badOhlc++;
+    }
+    if (!Number.isFinite(r.vol) || r.vol < 0) badVolume++;
+    if (i && rows[i - 1].close > 0) {
+      const ret = r.close / rows[i - 1].close - 1;
+      returns.push(ret);
+      if (Math.abs(ret) > 0.3) jumpCount++;
+    }
+  });
+  messages.push({ kind: "ok", text: `样本范围：${(rows[0] && rows[0].date) || ""} 至 ${(rows[rows.length - 1] && rows[rows.length - 1].date) || ""}，共 ${rows.length} 个交易日。` });
+  messages.push({ kind: missingCore ? "warn" : "ok", text: `核心 OHLCV 缺失值数量：${missingCore}。` });
+  messages.push({ kind: duplicateDates ? "warn" : "ok", text: `重复日期数量：${duplicateDates}。` });
+  messages.push({ kind: badOhlc ? "warn" : "ok", text: `价格关系异常行数：${badOhlc}。` });
+  messages.push({ kind: badVolume ? "warn" : "ok", text: `成交量异常行数：${badVolume}。` });
+  const lowerName = String(meta.fileName || "").toLowerCase();
+  const adjFields = ["adj_factor", "qfq_factor", "cum_adjfactor", "adj_type", "qfq", "adjusted"].filter(f => headers.has(f));
+  if (adjFields.length) messages.push({ kind: "ok", text: `检测到复权相关字段：${adjFields.join(", ")}，疑似已包含复权信息。` });
+  else if (/(qfq|hfq|adj|复权)/i.test(lowerName)) messages.push({ kind: "ok", text: "文件名包含复权关键词，疑似复权数据。" });
+  else messages.push({ kind: "warn", text: "未检测到明确复权字段，复权状态未知，分红送转可能影响突破与止损信号。" });
+  if (jumpCount) messages.push({ kind: "warn", text: `检测到 ${jumpCount} 个单日涨跌幅超过 30% 的跳变，可能存在未复权、除权除息或停复牌影响。` });
+  const avgAbsRet = returns.length ? returns.reduce((s, v) => s + Math.abs(v), 0) / returns.length : 0;
+  const enough = rows.length >= 120;
+  const clean = !missingFields.length && missingCore === 0 && duplicateDates === 0 && badOhlc === 0 && badVolume === 0;
+  const volatileEnough = avgAbsRet >= 0.008 || jumpCount > 0;
+  const suitable = enough && clean && volatileEnough;
+  const reason = [
+    enough ? "样本长度足够覆盖 20 日入场、20 日 ATR 与 10 日离场窗口" : "样本偏短，海龟策略可能信号稀疏且指标预热不足",
+    clean ? "核心字段质量可用" : "存在字段、重复日期或价格/成交量异常",
+    volatileEnough ? "波动幅度具备趋势突破策略的基本空间" : "平均波动偏低，突破后利润空间可能不足以覆盖噪音和交易成本"
+  ].join("；");
+  messages.push({ kind: suitable ? "ok" : "warn", text: `海龟策略适配初判：${suitable ? "较适合" : "需谨慎"}。原因：${reason}。` });
+  return messages;
+}
+function renderQuality(messages, meta) {
+  $("qualityBox").className = "status";
+  $("qualityBox").innerHTML = [
+    `<span class="pill">文件：${escapeHtml(meta.fileName || "")}</span>`,
+    `<span class="pill">代码：${escapeHtml(meta.tsCode || "未知")}</span>`,
+    `<span class="pill">名称：${escapeHtml(meta.name || "未知")}</span>`,
+    ...messages.map(m => `<div class="status ${m.kind}" style="margin-top:7px">${escapeHtml(m.text)}</div>`)
+  ].join("");
+}
+function rollingMean(values, n) {
+  let sum = 0, valid = 0;
+  return values.map((v, i) => {
+    if (Number.isFinite(v)) { sum += v; valid++; }
+    if (i >= n) {
+      const old = values[i - n];
+      if (Number.isFinite(old)) { sum -= old; valid--; }
+    }
+    return i >= n - 1 && valid === n ? sum / n : null;
+  });
+}
+function priorRange(rows, field, n, mode) {
+  return rows.map((_, i) => {
+    if (i < n) return null;
+    const vals = rows.slice(i - n, i).map(r => r[field]).filter(Number.isFinite);
+    if (vals.length !== n) return null;
+    return mode === "max" ? Math.max(...vals) : Math.min(...vals);
+  });
+}
+function addIndicators(rows, cfg) {
+  const out = rows.map(r => ({ ...r }));
+  const tr = out.map((r, i) => Math.max(r.high - r.low, Math.abs(r.high - (i ? out[i - 1].close : r.pre_close)), Math.abs(r.low - (i ? out[i - 1].close : r.pre_close))));
+  const atr = rollingMean(tr, cfg.atrWindow);
+  const entryHigh = priorRange(out, "high", cfg.entryWindow, "max");
+  const exitLow = priorRange(out, "low", cfg.exitWindow, "min");
+  out.forEach((r, i) => { r.atr = atr[i]; r.entry_high = entryHigh[i]; r.exit_low = exitLow[i]; });
+  return out;
+}
+function getConfig() {
+  const riskA = Number($("riskPerUnit").value), riskB = Number($("accountRiskPct").value);
+  const cfg = {
+    startDate: $("startDate").value,
+    endDate: $("endDate").value,
+    initialCash: Number($("initialCash").value),
+    lotSize: Math.max(1, Math.floor(Number($("lotSize").value) || 1)),
+    riskFreeRate: Number($("riskFreeRate").value) || 0,
+    entryWindow: Math.floor(Number($("entryWindow").value)),
+    atrWindow: Math.floor(Number($("atrWindow").value)),
+    riskPerUnit: Number.isFinite(riskA) ? riskA : riskB,
+    stopAtrMultiple: Number($("stopAtrMultiple").value),
+    addAtrStep: Number($("addAtrStep").value),
+    maxUnits: Math.min(4, Math.max(1, Math.floor(Number($("maxUnits").value) || 4))),
+    exitWindow: Math.floor(Number($("exitWindow").value)),
+    commissionRate: Number($("commissionRate").value),
+    minCommission: Number($("minCommission").value),
+    taxRate: Number($("taxRate").value),
+    slippageRate: Number($("slippageRate").value)
+  };
+  const errors = [];
+  if (!cfg.startDate || !cfg.endDate || cfg.startDate > cfg.endDate) errors.push("回测日期范围无效。");
+  if (!(cfg.initialCash > 0)) errors.push("初始资金必须大于 0。");
+  ["entryWindow", "atrWindow", "exitWindow"].forEach(k => { if (!(cfg[k] > 1)) errors.push(`${k} 必须大于 1。`); });
+  if (!(cfg.riskPerUnit > 0 && cfg.riskPerUnit <= 0.12)) errors.push("单位风险比例必须大于 0 且不超过 12%。");
+  if (cfg.riskPerUnit * cfg.maxUnits > 0.12) errors.push("当前单位风险 x 最多单位超过账户总风险 12%。");
+  ["stopAtrMultiple", "addAtrStep", "commissionRate", "minCommission", "taxRate", "slippageRate"].forEach(k => { if (cfg[k] < 0) errors.push(`${k} 不能为负。`); });
+  if (errors.length) throw new Error(errors.join("\n"));
+  return cfg;
+}
+function commission(amount, cfg) {
+  return amount > 0 ? Math.max(amount * cfg.commissionRate, cfg.minCommission) : 0;
+}
+function calcUnitQty(totalAsset, atr, price, cash, cfg) {
+  const riskBudget = totalAsset * cfg.riskPerUnit;
+  const rawQty = atr > 0 ? riskBudget / atr : 0;
+  const lotQty = Math.floor(rawQty / cfg.lotSize) * cfg.lotSize;
+  const oneLotCost = price * cfg.lotSize + commission(price * cfg.lotSize, cfg);
+  const cashQty = Math.floor(cash / Math.max(oneLotCost, 1e-9)) * cfg.lotSize;
+  return { qty: Math.max(0, Math.min(lotQty, cashQty)), riskBudget };
+}
+function contextFor(r, stopPrice, nextAddPrice, units) {
+  return { close: r.close, entry_high: r.entry_high, exit_low: r.exit_low, atr: r.atr, stop_price: stopPrice, next_add_price: nextAddPrice, units };
+}
+function makeTrade(id, pending, r, direction, qty, price, amount, fee, tax, rawPrice, cash, shares, units, pnlObj=null) {
+  return { id, signal_date: pending.signalDate, execute_date: r.date, direction, price, qty, units_after: units, amount, commission: fee, tax, slippage_cost: Math.abs(price - rawPrice) * qty, total_cost: fee + tax + Math.abs(price - rawPrice) * qty, cash_after: cash, shares_after: shares, reason: pending.reason, pnl: pnlObj ? pnlObj.pnl : null, return_rate: pnlObj ? pnlObj.returnRate : null, ...pending.context };
+}
+function runBacktest(rows, cfg) {
+  const data = addIndicators(rows.filter(r => r.date >= cfg.startDate && r.date <= cfg.endDate), cfg);
+  const minNeed = Math.max(cfg.entryWindow, cfg.exitWindow, cfg.atrWindow) + 2;
+  if (data.length < minNeed) throw new Error("回测区间内数据不足以完成指标预热和下一日成交。");
+  let cash = cfg.initialCash, shares = 0, avgCost = 0, units = 0, stopPrice = null, nextAddPrice = null, pending = null, peakEquity = cfg.initialCash;
+  const trades = [], signals = [], equity = [], closedTrades = [];
+  const firstClose = data[0].close;
+  for (let i = 0; i < data.length; i++) {
+    const r = data[i];
+    if (pending) {
+      const rawPrice = r.open;
+      if (pending.direction === "buy") {
+        const price = rawPrice * (1 + cfg.slippageRate);
+        const totalAssetNow = cash + shares * price;
+        const unit = calcUnitQty(totalAssetNow, pending.atr, price, cash, cfg);
+        const qty = unit.qty, amount = qty * price, fee = commission(amount, cfg);
+        if (qty > 0 && amount + fee <= cash && units < cfg.maxUnits) {
+          cash -= amount + fee;
+          avgCost = shares ? (avgCost * shares + amount + fee) / (shares + qty) : (amount + fee) / qty;
+          shares += qty;
+          units += 1;
+          stopPrice = price - cfg.stopAtrMultiple * pending.atr;
+          nextAddPrice = units < cfg.maxUnits ? price + cfg.addAtrStep * pending.atr : null;
+          trades.push(makeTrade(trades.length + 1, pending, r, pending.isAdd ? "加仓买入" : "买入", qty, price, amount, fee, 0, rawPrice, cash, shares, units));
+        } else {
+          signals.push({ date: pending.signalDate, execute_date: r.date, action: pending.isAdd ? "加仓未成交" : "买入未成交", reason: `资金、ATR、每手股数或最大单位限制；本次风险预算 ${fmtNum(unit.riskBudget)}`, ...pending.context });
+        }
+      } else if (pending.direction === "sell" && shares > 0) {
+        const qty = shares, price = rawPrice * (1 - cfg.slippageRate), amount = qty * price, fee = commission(amount, cfg), tax = amount * cfg.taxRate;
+        const pnl = amount - fee - tax - avgCost * qty;
+        const ret = avgCost > 0 ? (price - avgCost) / avgCost : 0;
+        cash += amount - fee - tax;
+        trades.push(makeTrade(trades.length + 1, pending, r, "卖出", qty, price, amount, fee, tax, rawPrice, cash, 0, 0, { pnl, returnRate: ret }));
+        closedTrades.push({ pnl, returnRate: ret });
+        shares = 0; avgCost = 0; units = 0; stopPrice = null; nextAddPrice = null;
+      }
+      pending = null;
+    }
+    const holdingValue = shares * r.close;
+    const totalAsset = cash + holdingValue;
+    peakEquity = Math.max(peakEquity, totalAsset);
+    const drawdown = peakEquity ? totalAsset / peakEquity - 1 : 0;
+    equity.push({ date: r.date, cash, shares, units, holdingValue, totalAsset, nav: totalAsset / cfg.initialCash, benchmark: r.close / firstClose, positionRatio: totalAsset ? holdingValue / totalAsset : 0, drawdown, stopPrice, nextAddPrice });
+    if (i >= data.length - 1 || !Number.isFinite(r.atr) || !Number.isFinite(r.entry_high) || !Number.isFinite(r.exit_low)) continue;
+    const ctx = contextFor(r, stopPrice, nextAddPrice, units);
+    const sellReasons = [];
+    if (shares > 0 && stopPrice !== null && r.low <= stopPrice) sellReasons.push("ATR 动态止损触发");
+    if (shares > 0 && r.low < r.exit_low) sellReasons.push(`${cfg.exitWindow} 日低点反向突破离场`);
+    if (sellReasons.length) {
+      pending = { direction: "sell", signalDate: r.date, reason: sellReasons.join("；"), context: ctx };
+      signals.push({ date: r.date, execute_date: data[i + 1].date, action: "卖出信号", reason: pending.reason, ...ctx });
+      continue;
+    }
+    const initialBreakout = shares === 0 && r.high > r.entry_high;
+    const addBreakout = shares > 0 && units < cfg.maxUnits && nextAddPrice !== null && r.high >= nextAddPrice;
+    if (initialBreakout || addBreakout) {
+      const reason = initialBreakout ? `${cfg.entryWindow} 日唐奇安上轨突破入场` : `价格较上一单位上涨 ${cfg.addAtrStep} ATR，加仓 1 单位`;
+      pending = { direction: "buy", signalDate: r.date, reason, isAdd: addBreakout, atr: r.atr, context: ctx };
+      signals.push({ date: r.date, execute_date: data[i + 1].date, action: initialBreakout ? "买入信号" : "加仓信号", reason, ...ctx });
+    }
+  }
+  return { data, equity, trades, signals, metrics: calcMetrics(equity, trades, closedTrades, cfg), finalState: equity[equity.length - 1], closedTrades, cfg };
+}
+function calcMetrics(equity, trades, closedTrades, cfg) {
+  const lastEquity = equity[equity.length - 1] || {};
+  const finalAsset = lastEquity.totalAsset || cfg.initialCash;
+  const totalReturn = finalAsset / cfg.initialCash - 1;
+  const annualReturn = equity.length > 1 ? Math.pow(finalAsset / cfg.initialCash, 252 / equity.length) - 1 : 0;
+  const benchmarkReturn = (lastEquity.benchmark || 1) - 1;
+  let maxDrawdown = 0, peak = -Infinity, ddStart = "", ddEnd = "", curPeakDate = "";
+  equity.forEach(e => {
+    if (e.totalAsset > peak) { peak = e.totalAsset; curPeakDate = e.date; }
+    const dd = e.totalAsset / peak - 1;
+    if (dd < maxDrawdown) { maxDrawdown = dd; ddStart = curPeakDate; ddEnd = e.date; }
+  });
+  const wins = closedTrades.filter(t => t.pnl > 0), losses = closedTrades.filter(t => t.pnl <= 0);
+  const winRate = closedTrades.length ? wins.length / closedTrades.length : 0;
+  const avgWin = wins.length ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0;
+  const avgLoss = losses.length ? losses.reduce((s, t) => s + t.pnl, 0) / losses.length : 0;
+  const profitLossRatio = avgLoss < 0 ? avgWin / Math.abs(avgLoss) : null;
+  const returns = equity.slice(1).map((e, i) => e.nav / equity[i].nav - 1);
+  const avgDaily = returns.length ? returns.reduce((s, v) => s + v, 0) / returns.length : 0;
+  const variance = returns.length ? returns.reduce((s, v) => s + Math.pow(v - avgDaily, 2), 0) / returns.length : 0;
+  const vol = Math.sqrt(variance);
+  const sharpe = vol > 0 ? ((avgDaily - cfg.riskFreeRate / 252) / vol) * Math.sqrt(252) : null;
+  return { totalReturn, annualReturn, cumulativeReturn: totalReturn, benchmarkReturn, excessReturn: totalReturn - benchmarkReturn, maxDrawdown, ddStart, ddEnd, tradeCount: trades.length, closedTradeCount: closedTrades.length, winRate, avgWin, avgLoss, profitLossRatio, sharpe };
+}
+function renderMetrics(result) {
+  const m = result.metrics, f = result.finalState;
+  const cards = [
+    ["总收益率", fmtPct(m.totalReturn)], ["年化收益率", fmtPct(m.annualReturn)], ["超额收益", fmtPct(m.excessReturn)], ["累积回报", fmtPct(m.cumulativeReturn)],
+    ["最大回撤", fmtPct(m.maxDrawdown)], ["胜率", fmtPct(m.winRate)], ["盈亏比", fmtNum(m.profitLossRatio, 2)], ["夏普比率", fmtNum(m.sharpe, 2)],
+    ["最终总资产", fmtNum(f.totalAsset)], ["最终现金", fmtNum(f.cash)], ["最终持仓单位", fmtNum(f.units, 0)], ["最终仓位", fmtPct(f.positionRatio)]
+  ];
+  $("metricBox").className = "metrics";
+  $("metricBox").innerHTML = cards.map(([label, value]) => `<div class="metric"><div class="label">${label}</div><div class="value">${value || "NA"}</div></div>`).join("");
+}
+function renderChart(containerId, legendId, series, markers=[]) {
+  const el = $(containerId), width = Math.max(760, el.clientWidth || 900), height = 440, pad = { l: 58, r: 76, t: 18, b: 44 };
+  const keyBase = containerId;
+  const markerKeys = Array.from(new Set(markers.map(m => m.type === "buy" ? "买入" : "卖出")));
+  [...series.map(s => s.name), ...markerKeys].forEach(name => { const k = `${keyBase}:${name}`; if (chartVisibility[k] === undefined) chartVisibility[k] = true; });
+  const legend = series.map(s => `<button type="button" class="${chartVisibility[`${keyBase}:${s.name}`] ? "" : "off"}" data-chart="${keyBase}" data-series="${escapeHtml(s.name)}"><i class="swatch" style="background:${s.color}"></i>${escapeHtml(s.name)}</button>`).join("") +
+    markerKeys.map(name => `<button type="button" class="${chartVisibility[`${keyBase}:${name}`] ? "" : "off"}" data-chart="${keyBase}" data-series="${name}"><i class="swatch" style="background:${name === "买入" ? "#0f7b4f" : "#b42318"}"></i>${name}</button>`).join("");
+  $(legendId).innerHTML = legend;
+  $(legendId).querySelectorAll("button[data-series]").forEach(btn => btn.addEventListener("click", () => { chartVisibility[`${btn.dataset.chart}:${btn.dataset.series}`] = !chartVisibility[`${btn.dataset.chart}:${btn.dataset.series}`]; if (lastResult) renderCharts(lastResult); }));
+  const visibleSeries = series.filter(s => chartVisibility[`${keyBase}:${s.name}`]);
+  const visibleMarkers = markers.filter(m => chartVisibility[`${keyBase}:${m.type === "buy" ? "买入" : "卖出"}`]);
+  const points = visibleSeries.flatMap(s => s.values.filter(p => Number.isFinite(p.y))).concat(visibleMarkers.filter(m => Number.isFinite(m.y)).map(m => ({ y: m.y })));
+  if (!points.length) { el.innerHTML = `<div class="empty">当前 legend 均已关闭，点击上方 legend 可恢复显示。</div>`; return; }
+  const minY = Math.min(...points.map(p => p.y)), maxY = Math.max(...points.map(p => p.y)), yPad = (maxY - minY || 1) * 0.08, y0 = minY - yPad, y1 = maxY + yPad;
+  const allDates = series[0].values.map(p => p.date), x = i => pad.l + i / Math.max(1, allDates.length - 1) * (width - pad.l - pad.r), y = v => height - pad.b - (v - y0) / (y1 - y0) * (height - pad.t - pad.b);
+  const dateToIndex = new Map(allDates.map((d, i) => [d, i]));
+  const grid = Array.from({ length: 5 }, (_, i) => {
+    const yy = pad.t + i * (height - pad.t - pad.b) / 4, val = y1 - i * (y1 - y0) / 4;
+    return `<line class="grid-line" x1="${pad.l}" x2="${width-pad.r}" y1="${yy}" y2="${yy}"></line><text class="axis-text" x="6" y="${yy+4}">${fmtNum(val, 2)}</text>`;
+  }).join("");
+  const paths = visibleSeries.map(s => {
+    const pts = s.values.map((p, i) => ({ ...p, index: i })).filter(p => Number.isFinite(p.y));
+    const d = pts.map((p, i) => `${i ? "L" : "M"} ${x(p.index).toFixed(1)} ${y(p.y).toFixed(1)}`).join(" ");
+    return d ? `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.width || 2}"></path>` : "";
+  }).join("");
+  const hoverDots = visibleSeries.flatMap(s => s.values.map((p, i) => Number.isFinite(p.y) ? `<circle class="hover-dot" cx="${x(i).toFixed(1)}" cy="${y(p.y).toFixed(1)}" r="7" fill="${s.color}" data-tooltip="${escapeHtml(p.tooltip || `${s.name}\n日期：${p.date}\n数值：${fmtNum(p.y, 4)}`)}"></circle>` : "")).join("");
+  const markerSvg = visibleMarkers.map(m => {
+    const i = dateToIndex.get(m.date);
+    if (i === undefined || !Number.isFinite(m.y)) return "";
+    const cx = x(i), cy = y(m.y), hit = `<circle class="trade-hit" cx="${cx}" cy="${cy}" r="15" fill="#000" data-tooltip="${escapeHtml(m.tooltip || "")}"></circle>`;
+    return m.type === "buy" ? `<g>${hit}<path class="trade-marker" d="M ${cx} ${cy-9} l 8 16 h -16 z" fill="#0f7b4f"></path></g>` : `<g>${hit}<path class="trade-marker" d="M ${cx} ${cy+9} l 8 -16 h -16 z" fill="#b42318"></path></g>`;
+  }).join("");
+  const ticks = [{ i: 0, a: "start" }, { i: Math.floor(allDates.length / 2), a: "middle" }, { i: allDates.length - 1, a: "end" }].map(t => `<text class="axis-text" text-anchor="${t.a}" x="${x(t.i)}" y="${height-12}">${allDates[t.i] || ""}</text>`).join("");
+  el.innerHTML = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">${grid}<line class="axis" x1="${pad.l}" x2="${width-pad.r}" y1="${height-pad.b}" y2="${height-pad.b}"></line>${paths}${hoverDots}${markerSvg}${ticks}</svg>`;
+  el.querySelectorAll("[data-tooltip]").forEach(node => { node.addEventListener("mousemove", e => showChartTooltip(e, node.getAttribute("data-tooltip"))); node.addEventListener("mouseleave", hideChartTooltip); });
+}
+function renderCharts(result) {
+  const d = result.data, eq = result.equity, trades = result.trades;
+  renderChart("priceChart", "priceLegend", [
+    { name: "收盘价", color: "#253044", values: d.map(r => ({ date: r.date, y: r.close, tooltip: `收盘价\n日期：${r.date}\n收盘：${fmtNum(r.close)}\n入场上轨：${fmtNum(r.entry_high)}\n离场下轨：${fmtNum(r.exit_low)}\nATR：${fmtNum(r.atr)}` })) },
+    { name: "N 日高点通道", color: "#1f78b4", values: d.map(r => ({ date: r.date, y: r.entry_high, tooltip: `唐奇安入场上轨\n日期：${r.date}\n${fmtNum(r.entry_high)}` })) },
+    { name: "N 日低点通道", color: "#f59f00", values: d.map(r => ({ date: r.date, y: r.exit_low, tooltip: `反向突破离场下轨\n日期：${r.date}\n${fmtNum(r.exit_low)}` })) },
+    { name: "ATR 止损价", color: "#b42318", values: eq.map(r => ({ date: r.date, y: r.stopPrice, tooltip: `ATR 动态止损\n日期：${r.date}\n止损价：${fmtNum(r.stopPrice)}\n下一加仓价：${fmtNum(r.nextAddPrice)}\n持仓单位：${fmtNum(r.units, 0)}` })) }
+  ], trades.map(t => ({ date: t.execute_date, y: t.price, type: t.direction === "卖出" ? "sell" : "buy", tooltip: `${t.direction}成交\n信号日：${t.signal_date}\n成交日：${t.execute_date}\n成交价：${fmtNum(t.price)}\n数量：${fmtNum(t.qty, 0)}\n成交金额：${fmtNum(t.amount)}\n手续费：${fmtNum(t.commission)}\n税费：${fmtNum(t.tax)}\n滑点成本：${fmtNum(t.slippage_cost)}\n成交后单位：${fmtNum(t.units_after, 0)}\n原因：${t.reason}\n入场上轨：${fmtNum(t.entry_high)}\n离场下轨：${fmtNum(t.exit_low)}\nATR：${fmtNum(t.atr)}${Number.isFinite(t.return_rate) ? `\n单笔收益率：${fmtPct(t.return_rate)}` : ""}` })));
+  renderChart("equityChart", "equityLegend", [
+    { name: "策略净值", color: "#2563eb", values: eq.map(r => ({ date: r.date, y: r.nav, tooltip: `策略净值\n日期：${r.date}\n净值：${fmtNum(r.nav, 4)}\n总资产：${fmtNum(r.totalAsset)}\n现金：${fmtNum(r.cash)}\n持仓市值：${fmtNum(r.holdingValue)}` })) },
+    { name: "基准净值", color: "#64748b", values: eq.map(r => ({ date: r.date, y: r.benchmark, tooltip: `基准净值\n日期：${r.date}\n基准净值：${fmtNum(r.benchmark, 4)}` })) },
+    { name: "持仓单位", color: "#0f7b4f", values: eq.map(r => ({ date: r.date, y: r.units, tooltip: `持仓单位\n日期：${r.date}\n单位：${fmtNum(r.units, 0)}\n持仓股数：${fmtNum(r.shares, 0)}\n持仓比例：${fmtPct(r.positionRatio)}` })) },
+    { name: "回撤", color: "#b42318", values: eq.map(r => ({ date: r.date, y: r.drawdown, tooltip: `回撤\n日期：${r.date}\n回撤：${fmtPct(r.drawdown)}\n净值：${fmtNum(r.nav, 4)}` })) }
+  ]);
+}
+function renderTable(containerId, rows, columns, searchText="") {
+  const filtered = searchText ? rows.filter(r => JSON.stringify(r).toLowerCase().includes(searchText.toLowerCase())) : rows;
+  if (!filtered.length) { $(containerId).innerHTML = `<div class="empty">暂无记录。</div>`; return; }
+  $(containerId).innerHTML = `<div class="table-wrap"><table><thead><tr>${columns.map(c => `<th>${c.label}</th>`).join("")}</tr></thead><tbody>${filtered.map(r => `<tr>${columns.map(c => `<td>${c.format ? c.format(r[c.key], r) : escapeHtml(r[c.key] == null ? "" : r[c.key])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+function renderTables(result) {
+  const tradeCols = [["id","序号"],["signal_date","信号日"],["execute_date","成交日"],["direction","方向"],["price","成交价",v=>fmtNum(v)],["qty","数量",v=>fmtNum(v,0)],["units_after","成交后单位",v=>fmtNum(v,0)],["amount","成交金额",v=>fmtNum(v)],["commission","手续费",v=>fmtNum(v)],["tax","税费",v=>fmtNum(v)],["slippage_cost","滑点成本",v=>fmtNum(v)],["cash_after","交易后现金",v=>fmtNum(v)],["shares_after","交易后持仓",v=>fmtNum(v,0)],["return_rate","单笔收益",v=>fmtPct(v)],["reason","原因"]].map(([key,label,format]) => ({ key, label, format }));
+  const signalCols = [["date","信号日"],["execute_date","下一交易日成交日"],["action","动作"],["reason","原因"],["close","收盘",v=>fmtNum(v)],["entry_high","入场上轨",v=>fmtNum(v)],["exit_low","离场下轨",v=>fmtNum(v)],["atr","ATR",v=>fmtNum(v)],["stop_price","止损价",v=>fmtNum(v)],["next_add_price","下一加仓价",v=>fmtNum(v)],["units","单位",v=>fmtNum(v,0)]].map(([key,label,format]) => ({ key, label, format }));
+  renderTable("tradeTable", result.trades, tradeCols, $("tradeSearch").value);
+  renderTable("signalTable", result.signals, signalCols, $("signalSearch").value);
+}
+function renderParams(result) {
+  const entries = Object.entries(result.cfg).map(([k, v]) => `<span class="pill">${escapeHtml(k)}: ${escapeHtml(v)}</span>`).join("");
+  const m = result.metrics;
+  $("paramBox").className = "";
+  $("paramBox").innerHTML = `<p><strong>成交口径：</strong>信号日收盘判断，下一交易日开盘成交；单股票单标的；入场后 1 单位，价格每上涨 0.5 ATR 加 1 单位，最多 4 单位；止损与离场信号触发后下一交易日开盘执行。</p><p><strong>组合级风险规则：</strong>高度相关市场合计不超过 6 个单位，同一方向所有头寸合计不超过 12 个单位，账户总风险不超过 12%。单标的回测中强制最多 4 个单位。</p>${entries}<p><strong>最大回撤区间：</strong>${m.ddStart || "NA"} 至 ${m.ddEnd || "NA"}</p>`;
+}
+function toCsv(rows) {
+  if (!rows.length) return "";
+  const cols = Object.keys(rows[0]), esc = v => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`;
+  return [cols.join(","), ...rows.map(r => cols.map(c => esc(r[c])).join(","))].join("\n");
+}
+function downloadText(name, text, type="text/plain") {
+  const blob = new Blob([text], { type }), a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name; a.click(); URL.revokeObjectURL(a.href);
+}
+function exportReport() {
+  if (!lastResult) return;
+  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>海龟策略回测报告</title><style>body{font-family:Arial,"Noto Sans CJK SC",sans-serif;color:#1f2937;margin:24px}.metric{display:inline-block;border:1px solid #ddd;padding:8px;margin:4px}table{border-collapse:collapse;width:100%;font-size:12px}th,td{border:1px solid #ddd;padding:5px;text-align:left}h1,h2{page-break-after:avoid}</style></head><body><h1>海龟策略回测报告</h1>${$("qualityBox").innerHTML}<h2>绩效指标</h2>${$("metricBox").innerHTML}<h2>参数快照</h2>${$("paramBox").innerHTML}<h2>交易明细</h2>${$("tradeTable").innerHTML}<h2>信号日志</h2>${$("signalTable").innerHTML}</body></html>`;
+  downloadText(`turtle_strategy_report_${new Date().toISOString().slice(0,10)}.html`, html, "text/html");
+}
+function runAll() {
+  if (!dataset.length) throw new Error("请先导入 CSV 数据。");
+  const cfg = getConfig();
+  const result = runBacktest(dataset, cfg);
+  lastResult = result;
+  renderMetrics(result); renderCharts(result); renderTables(result); renderParams(result);
+  ["exportHtmlBtn","printBtn","exportTradesBtn","exportSignalsBtn"].forEach(id => $(id).disabled = false);
+  activateTab("charts");
+}
+function activateTab(id) {
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === id));
+  document.querySelectorAll(".tab-pane").forEach(p => p.classList.toggle("active", p.id === id));
+}
+function loadRowsFromText(text, fileName, isDefault=false) {
+  try {
+    const norm = normalizeRows(parseCSV(text), fileName);
+    dataset = norm.rows; dataMeta = norm.meta;
+    const messages = qualityCheck(dataset, dataMeta);
+    renderQuality(messages, dataMeta);
+    if (dataset.length) {
+      $("startDate").value = dataset[0].date;
+      $("endDate").value = dataset[dataset.length - 1].date;
+      if (String(dataMeta.tsCode).endsWith(".HK")) $("lotSize").value = 1;
+    }
+    const hasErr = messages.some(m => m.kind === "err");
+    setStatus(hasErr ? "数据存在字段错误，请修正后再回测。" : `${isDefault ? "已默认导入示例数据" : "已导入"} ${dataset.length} 行数据。`, hasErr ? "err" : "ok");
+  } catch (err) {
+    setStatus(err.message, "err");
+  }
+}
+async function loadDefaultSample() {
+  try {
+    const res = await fetch("sample_data/smic_a_daily_qfq.csv");
+    if (res.ok) loadRowsFromText(await res.text(), "smic_a_daily_qfq.csv", true);
+  } catch (_) {
+    setStatus("等待导入数据。直接用 file:// 打开时，浏览器可能禁止自动读取示例 CSV；请选择 sample_data 中的 CSV 文件。", "warn");
+  }
+}
+$("riskPerUnit").addEventListener("input", () => { $("accountRiskPct").value = $("riskPerUnit").value; });
+$("accountRiskPct").addEventListener("input", () => { $("riskPerUnit").value = $("accountRiskPct").value; });
+$("csvFile").addEventListener("change", async event => {
+  const file = event.target.files[0];
+  if (file) loadRowsFromText(await file.text(), file.name, false);
+});
+$("runBtn").addEventListener("click", () => { try { runAll(); setStatus("回测完成。", "ok"); } catch (err) { setStatus(err.message, "err"); } });
+$("resetBtn").addEventListener("click", () => location.reload());
+$("exportHtmlBtn").addEventListener("click", exportReport);
+$("printBtn").addEventListener("click", () => window.print());
+$("exportTradesBtn").addEventListener("click", () => lastResult && downloadText("turtle_trades.csv", toCsv(lastResult.trades), "text/csv"));
+$("exportSignalsBtn").addEventListener("click", () => lastResult && downloadText("turtle_signals.csv", toCsv(lastResult.signals), "text/csv"));
+$("tradeSearch").addEventListener("input", () => lastResult && renderTables(lastResult));
+$("signalSearch").addEventListener("input", () => lastResult && renderTables(lastResult));
+document.querySelectorAll(".tabs button").forEach(btn => btn.addEventListener("click", () => activateTab(btn.dataset.tab)));
+document.addEventListener("DOMContentLoaded", loadDefaultSample);
+</script>
+</body>
+</html>
