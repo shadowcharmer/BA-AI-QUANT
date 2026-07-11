@@ -9,8 +9,8 @@
 - `stock_indicator_tool_config.example.json`：配置示例。
 - `stock_indicator_tool_spec.md`：设计 spec。
 - `stock_indicator_tool_readme.md`：本说明文件。
-- `smic_a_daily.csv`：内置 A 股示例数据。
-- `smic_hk_daily.csv`：内置港股示例数据。
+- `smic_a_daily_qfq.csv`：内置 A 股前复权示例数据。
+- `smic_hk_daily_qfq.csv`：内置港股前复权示例数据。
 
 ## 2. 功能概览
 
@@ -70,8 +70,8 @@ CSV 推荐字段：
 
 tool 目录中保留了两份示例 CSV：
 
-- `task2/tool/smic_a_daily.csv`
-- `task2/tool/smic_hk_daily.csv`
+- `task2/tool/smic_a_daily_qfq.csv`
+- `task2/tool/smic_hk_daily_qfq.csv`
 
 需要使用示例数据时，请在左侧“本地 CSV 导入”中点击“选择 CSV 文件”，手动选择上述 CSV。
 
@@ -260,8 +260,8 @@ http://127.0.0.1:8765/stock_indicator_tool.html
 
 在网页左侧选择“本地 CSV 导入”，点击“选择 CSV 文件”，手动选择：
 
-- `task2/tool/smic_a_daily.csv`
-- `task2/tool/smic_hk_daily.csv`
+- `task2/tool/smic_a_daily_qfq.csv`
+- `task2/tool/smic_hk_daily_qfq.csv`
 
 ### 动态获取失败
 

@@ -42,12 +42,12 @@
 <body>
 <header>
   <h1>TASK2 Question3 中芯国际技术指标分析报告</h1>
-  <p>本报告基于 TASK1 已保存的 A 股与港股日线数据，计算 RSI、MACD、布林带、ATR、OBV、ADX、BIAS 和 Z-score。图中用彩色标记高亮关键事件，例如 MACD 金叉/死叉、RSI 超买/超卖、布林带突破和 Z-score 极端偏离。点击图例可隐藏或显示对应曲线。</p>
+  <p>本报告基于 TASK1 已保存的 A 股与港股前复权结构日线数据，计算 RSI、MACD、布林带、ATR、OBV、ADX、BIAS 和 Z-score。A 股 Tushare adj_factor 在样本区间内均为 1.0；港股复权接口本次返回权限错误，因此港股文件使用 identity 因子记录口径、价格未发生数值调整。图中用彩色标记高亮关键事件，例如 MACD 金叉/死叉、RSI 超买/超卖、布林带突破和 Z-score 极端偏离。点击图例可隐藏或显示对应曲线。</p>
 </header>
 <main>
   <section class="summary">
     <h2>数据与指标说明</h2>
-    <p>ATR 按 Average True Range 平均真实波幅处理；RSI 参数为 6、14、24；MACD 参数为 12/26/9；布林带为 20 日均线和 2 倍标准差；ADX 与 ATR 为 14 日；BIAS 为 6、12、24；Z-score 为 20 日滚动窗口。</p>
+    <p>ATR 按 Average True Range 平均真实波幅处理；RSI 参数为 6、14、24；MACD 参数为 12/26/9；布林带为 20 日均线和 2 倍标准差；ADX 与 ATR 为 14 日；BIAS 为 6、12、24；Z-score 为 20 日滚动窗口。复权生成元数据见 task1/qfq_metadata.json。</p>
     <div class="table-scroll"><table border="1" class="dataframe summary-table">
   <thead>
     <tr style="text-align: right;">

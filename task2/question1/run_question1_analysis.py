@@ -15,15 +15,15 @@ OUT = ROOT / "task2" / "question1"
 DATASETS = {
     "A股": {
         "key": "a",
-        "path": TASK1 / "smic_a_daily.csv",
+        "path": TASK1 / "smic_a_daily_qfq.csv",
         "code": "688981.SH",
-        "market_note": "A股以人民币交易，涨跌停制度和成交量单位与港股不同。",
+        "market_note": "A股以人民币交易，价格字段使用前复权口径；涨跌停制度和成交量单位与港股不同。",
     },
     "港股": {
         "key": "hk",
-        "path": TASK1 / "smic_hk_daily.csv",
+        "path": TASK1 / "smic_hk_daily_qfq.csv",
         "code": "00981.HK",
-        "market_note": "港股以港币交易，交易机制、投资者结构和成交量口径与A股不同。",
+        "market_note": "港股以港币交易，价格字段使用前复权口径；交易机制、投资者结构和成交量口径与A股不同。",
     },
 }
 
@@ -85,6 +85,14 @@ FIELD_ZH = {
     "volatility_20d": "20日滚动波动率",
     "amount_ma20": "20日平均成交额",
     "amount_ma20_ratio": "成交额相对20日均值倍数",
+    "adj_factor": "A股复权因子",
+    "cum_adjfactor": "港股累计复权因子",
+    "qfq_factor": "前复权调整比例",
+    "raw_open": "原始开盘价",
+    "raw_high": "原始最高价",
+    "raw_low": "原始最低价",
+    "raw_close": "原始收盘价",
+    "raw_pre_close": "原始前收盘价",
 }
 
 FIELD_EXPLANATION = {
@@ -115,6 +123,14 @@ FIELD_EXPLANATION = {
     "volatility_20d": "近20个交易日日涨跌幅标准差，衡量近期风险水平。",
     "amount_ma20": "近20个交易日成交额均值，作为成交活跃度基准。",
     "amount_ma20_ratio": "当日成交额相对20日均值的倍数，用于识别放量或缩量状态。",
+    "adj_factor": "A股每日复权因子，用于将原始价格转换为前复权价格。",
+    "cum_adjfactor": "港股累计复权因子或本次生成时记录的替代因子，用于追溯前复权口径。",
+    "qfq_factor": "当日复权因子除以最新交易日复权因子得到的前复权调整比例。",
+    "raw_open": "未复权开盘价，用于与前复权价格追溯对照。",
+    "raw_high": "未复权最高价，用于与前复权价格追溯对照。",
+    "raw_low": "未复权最低价，用于与前复权价格追溯对照。",
+    "raw_close": "未复权收盘价，用于与前复权价格追溯对照。",
+    "raw_pre_close": "未复权前收盘价，用于与前复权价格追溯对照。",
 }
 
 STAT_ZH = {
@@ -158,7 +174,16 @@ def field_dictionary() -> pd.DataFrame:
         "close_ma5",
         "close_ma20",
         "amount_ma20",
-    ] + DERIVED_COLS
+    ] + DERIVED_COLS + [
+        "adj_factor",
+        "cum_adjfactor",
+        "qfq_factor",
+        "raw_open",
+        "raw_high",
+        "raw_low",
+        "raw_close",
+        "raw_pre_close",
+    ]
     seen = set()
     for field in ordered_fields:
         if field in seen:
@@ -392,7 +417,7 @@ def build_interpretation(overviews: pd.DataFrame, missing: pd.DataFrame, quality
     return f"""
 ## 可放入 Word 的描述总结
 
-本次分析使用 TASK1 获取的中芯国际 A 股与港股近三年每日交易数据。A 股样本覆盖 {overviews.loc[overviews['market'] == 'A股', 'start_date'].iloc[0]} 至 {overviews.loc[overviews['market'] == 'A股', 'end_date'].iloc[0]}，共 {int(overviews.loc[overviews['market'] == 'A股', 'rows'].iloc[0])} 条交易日记录；港股样本覆盖 {overviews.loc[overviews['market'] == '港股', 'start_date'].iloc[0]} 至 {overviews.loc[overviews['market'] == '港股', 'end_date'].iloc[0]}，共 {int(overviews.loc[overviews['market'] == '港股', 'rows'].iloc[0])} 条交易日记录。两份原始数据关键字段缺失值数量为 {raw_missing_total}。滚动均线、20 日波动率、5/20 日收益等衍生指标因窗口期需要，在样本开头自然产生 {rolling_missing_total} 个空值，这属于计算口径导致的预期空值，不代表原始数据质量缺陷。{quality_text}
+本次分析使用 TASK1 获取并整理为前复权结构的中芯国际 A 股与港股近三年每日交易数据。A 股样本覆盖 {overviews.loc[overviews['market'] == 'A股', 'start_date'].iloc[0]} 至 {overviews.loc[overviews['market'] == 'A股', 'end_date'].iloc[0]}，共 {int(overviews.loc[overviews['market'] == 'A股', 'rows'].iloc[0])} 条交易日记录；港股样本覆盖 {overviews.loc[overviews['market'] == '港股', 'start_date'].iloc[0]} 至 {overviews.loc[overviews['market'] == '港股', 'end_date'].iloc[0]}，共 {int(overviews.loc[overviews['market'] == '港股', 'rows'].iloc[0])} 条交易日记录。A 股 Tushare adj_factor 在样本区间内均为 1.0；港股 Tushare 复权接口本次返回权限错误，因此港股文件使用 identity 因子记录口径、价格未发生数值调整，详细来源见 `task1/qfq_metadata.json`。两份数据关键字段缺失值数量为 {raw_missing_total}。滚动均线、20 日波动率、5/20 日收益等衍生指标因窗口期需要，在样本开头自然产生 {rolling_missing_total} 个空值，这属于计算口径导致的预期空值，不代表原始数据质量缺陷。{quality_text}
 
 从价格分布看，A 股收盘价均值为 {a_close_mean:.2f}，港股收盘价均值为 {hk_close_mean:.2f}。这两个数值不能直接解释为 A 股比港股“更贵”或“更便宜”，因为二者使用不同币种、不同交易单位，并且 A/H 股价格还受到市场准入、投资者结构、流动性偏好和风险定价差异影响。对策略研究而言，价格水平本身不是最重要的信号，更重要的是价格相对自身历史区间的位置、均值与中位数的偏离程度，以及价格是否持续处在高分位或低分位区域。
 
@@ -421,6 +446,9 @@ def build_markdown_report(
 ) -> str:
     report = [
         "# TASK2 问题1：中芯国际 A股与港股基础诊断分析",
+        "",
+        "## 复权口径说明",
+        "本报告读取 `task1/smic_a_daily_qfq.csv` 与 `task1/smic_hk_daily_qfq.csv`。A 股复权因子来自 Tushare `adj_factor`，样本区间内全部为 1.0；港股 Tushare `hk_adjfactor`/`hk_daily_adj` 接口本次返回 40203 权限错误，因此港股文件使用 identity 因子记录前复权结构，价格未发生数值调整。详细元数据见 `task1/qfq_metadata.json`。",
         "",
         "## 数据概览",
         md_table(overviews),
@@ -540,8 +568,8 @@ def build_notebook() -> dict[str, object]:
                 "\n",
                 "ROOT = Path('../..').resolve()\n",
                 "OUT = ROOT / 'task2' / 'question1'\n",
-                "a = pd.read_csv(ROOT / 'task1' / 'smic_a_daily.csv', encoding='utf-8-sig')\n",
-                "hk = pd.read_csv(ROOT / 'task1' / 'smic_hk_daily.csv', encoding='utf-8-sig')\n",
+                "a = pd.read_csv(ROOT / 'task1' / 'smic_a_daily_qfq.csv', encoding='utf-8-sig')\n",
+                "hk = pd.read_csv(ROOT / 'task1' / 'smic_hk_daily_qfq.csv', encoding='utf-8-sig')\n",
                 "a.head(), hk.head()\n",
             ],
         },

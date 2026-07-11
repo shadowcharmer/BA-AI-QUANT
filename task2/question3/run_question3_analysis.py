@@ -12,8 +12,8 @@ TASK1 = ROOT / "task1"
 OUT = ROOT / "task2" / "question3"
 
 DATASETS = {
-    "a": {"market": "A股", "code": "688981.SH", "path": TASK1 / "smic_a_daily.csv"},
-    "hk": {"market": "港股", "code": "00981.HK", "path": TASK1 / "smic_hk_daily.csv"},
+    "a": {"market": "A股", "code": "688981.SH", "path": TASK1 / "smic_a_daily_qfq.csv"},
+    "hk": {"market": "港股", "code": "00981.HK", "path": TASK1 / "smic_hk_daily_qfq.csv"},
 }
 
 NUMERIC_COLS = ["open", "high", "low", "close", "pre_close", "change", "pct_chg", "vol", "amount"]
@@ -378,12 +378,12 @@ HTML_TEMPLATE = r"""<!doctype html>
 <body>
 <header>
   <h1>TASK2 Question3 中芯国际技术指标分析报告</h1>
-  <p>本报告基于 TASK1 已保存的 A 股与港股日线数据，计算 RSI、MACD、布林带、ATR、OBV、ADX、BIAS 和 Z-score。图中用彩色标记高亮关键事件，例如 MACD 金叉/死叉、RSI 超买/超卖、布林带突破和 Z-score 极端偏离。点击图例可隐藏或显示对应曲线。</p>
+  <p>本报告基于 TASK1 已保存的 A 股与港股前复权结构日线数据，计算 RSI、MACD、布林带、ATR、OBV、ADX、BIAS 和 Z-score。A 股 Tushare adj_factor 在样本区间内均为 1.0；港股复权接口本次返回权限错误，因此港股文件使用 identity 因子记录口径、价格未发生数值调整。图中用彩色标记高亮关键事件，例如 MACD 金叉/死叉、RSI 超买/超卖、布林带突破和 Z-score 极端偏离。点击图例可隐藏或显示对应曲线。</p>
 </header>
 <main>
   <section class="summary">
     <h2>数据与指标说明</h2>
-    <p>ATR 按 Average True Range 平均真实波幅处理；RSI 参数为 6、14、24；MACD 参数为 12/26/9；布林带为 20 日均线和 2 倍标准差；ADX 与 ATR 为 14 日；BIAS 为 6、12、24；Z-score 为 20 日滚动窗口。</p>
+    <p>ATR 按 Average True Range 平均真实波幅处理；RSI 参数为 6、14、24；MACD 参数为 12/26/9；布林带为 20 日均线和 2 倍标准差；ADX 与 ATR 为 14 日；BIAS 为 6、12、24；Z-score 为 20 日滚动窗口。复权生成元数据见 task1/qfq_metadata.json。</p>
     <div class="table-scroll">__SUMMARY_TABLE__</div>
   </section>
   <div class="tabs">
@@ -567,15 +567,15 @@ def build_html(chart_data: dict[str, list[dict[str, object]]], summaries: pd.Dat
 
 def build_notebook() -> dict[str, object]:
     cells = [
-        {"cell_type": "markdown", "metadata": {}, "source": ["# TASK2 Question3 技术指标分析\n", "\n", "本 notebook 复现指标计算和 HTML 报告生成流程。\n"]},
+        {"cell_type": "markdown", "metadata": {}, "source": ["# TASK2 Question3 技术指标分析\n", "\n", "本 notebook 复现基于前复权结构数据的指标计算和 HTML 报告生成流程；复权生成元数据见 `task1/qfq_metadata.json`。\n"]},
         {"cell_type": "code", "execution_count": None, "metadata": {}, "outputs": [], "source": [
             "from pathlib import Path\n",
             "import pandas as pd\n",
             "import numpy as np\n",
             "ROOT = Path('../..').resolve()\n",
             "OUT = ROOT / 'task2' / 'question3'\n",
-            "a = pd.read_csv(ROOT / 'task1' / 'smic_a_daily.csv', encoding='utf-8-sig')\n",
-            "hk = pd.read_csv(ROOT / 'task1' / 'smic_hk_daily.csv', encoding='utf-8-sig')\n",
+            "a = pd.read_csv(ROOT / 'task1' / 'smic_a_daily_qfq.csv', encoding='utf-8-sig')\n",
+            "hk = pd.read_csv(ROOT / 'task1' / 'smic_hk_daily_qfq.csv', encoding='utf-8-sig')\n",
             "a.head(), hk.head()\n",
         ]},
         {"cell_type": "markdown", "metadata": {}, "source": ["## 指标口径\n", "- RSI: 6/14/24\n- MACD: 12/26/9\n- Bollinger Bands: 20日、2倍标准差\n- ATR/ADX: 14日\n- BIAS: 6/12/24\n- Z-score: 20日\n"]},
@@ -585,8 +585,8 @@ def build_notebook() -> dict[str, object]:
             "sys.path.insert(0, str(OUT))\n",
             "import run_question3_analysis as q3\n",
             "\n",
-            "a_ind = q3.add_events(q3.add_indicators(q3.load_data(ROOT / 'task1' / 'smic_a_daily.csv')))\n",
-            "hk_ind = q3.add_events(q3.add_indicators(q3.load_data(ROOT / 'task1' / 'smic_hk_daily.csv')))\n",
+            "a_ind = q3.add_events(q3.add_indicators(q3.load_data(ROOT / 'task1' / 'smic_a_daily_qfq.csv')))\n",
+            "hk_ind = q3.add_events(q3.add_indicators(q3.load_data(ROOT / 'task1' / 'smic_hk_daily_qfq.csv')))\n",
             "a_ind[['trade_date', 'close', 'rsi_14', 'macd_dif', 'macd_dea', 'atr_14_pct', 'adx_14', 'bias_12', 'zscore_20']].tail()\n",
         ]},
         {"cell_type": "markdown", "metadata": {}, "source": ["## 关键事件统计\n", "下面统计图中被高亮展示的重要事件数量，例如 MACD 金叉/死叉、RSI 超买/超卖和布林带突破。\n"]},

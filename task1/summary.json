@@ -2,7 +2,7 @@
   {
     "market": "A股",
     "code": "688981.SH",
-    "csv": "smic_a_daily.csv",
+    "csv": "smic_a_daily_qfq.csv",
     "rows": 237,
     "start": "20250702",
     "end": "20260702",
@@ -39,7 +39,7 @@
   {
     "market": "港股",
     "code": "00981.HK",
-    "csv": "smic_hk_daily.csv",
+    "csv": "smic_hk_daily_qfq.csv",
     "rows": 246,
     "start": "20250702",
     "end": "20260702",

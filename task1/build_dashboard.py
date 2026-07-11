@@ -141,7 +141,7 @@ def build_html(data, summaries):
   <div class="top">
     <div>
       <h1>中芯国际 A/H 股近一年交易数据分析</h1>
-      <div class="sub">基于本地 CSV：2025-07-02 至 2026-07-02。A 股与港股独立分析，并提供归一化收盘价对比。</div>
+      <div class="sub">基于本地前复权 CSV：2025-07-02 至 2026-07-02。A 股与港股独立分析，并提供归一化收盘价对比。</div>
     </div>
     <div class="tabs">
       <button class="tab active" data-market="A股">A 股 688981.SH</button>
@@ -160,7 +160,7 @@ def build_html(data, summaries):
     <section class="panel"><div class="panel-head"><div><div class="title">图 8 月度收益率</div><div class="caption">按自然月统计首尾收盘价涨跌</div></div></div><canvas id="monthly" class="chart small"></canvas><div class="interpret" id="i-monthly"></div></section>
     <section class="panel wide"><div class="panel-head"><div><div class="title">图 9 A 股与港股归一化收盘价对比</div><div class="caption">将各自首日收盘价设为 100，比较相对走势</div></div></div><canvas id="compare" class="chart"></canvas><div class="interpret" id="i-compare"></div></section>
     <section class="panel"><div class="panel-head"><div><div class="title">表 1 关键交易日</div><div class="caption">最大涨幅、最大跌幅、最高成交量</div></div></div><div id="keyTable"></div><div class="interpret" id="i-table"></div></section>
-    <section class="panel"><div class="panel-head"><div><div class="title">数据文件</div><div class="caption">当前市场 CSV 与摘要文件</div></div></div><div class="downloads"><a id="csvLink" href="#">下载当前市场 CSV</a><span id="csvName" class="sub"></span></div><p class="note">统计图均由页面内嵌的本地 CSV 数据生成，无需联网。</p></section>
+    <section class="panel"><div class="panel-head"><div><div class="title">数据文件</div><div class="caption">当前市场 CSV 与摘要文件</div></div></div><div class="downloads"><a id="csvLink" href="#">下载当前市场 CSV</a><span id="csvName" class="sub"></span></div><p class="note">统计图均由页面内嵌的本地前复权 CSV 数据生成；复权因子来源见 qfq_metadata.json。</p></section>
   </div>
 </div>
 <script>
@@ -197,24 +197,24 @@ document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{current=b.dataset.ma
 
 
 def main():
-    a_rows = enrich_rows(read_csv(BASE / "smic_a_daily.csv"))
-    hk_rows = enrich_rows(read_csv(BASE / "smic_hk_daily.csv"))
+    a_rows = enrich_rows(read_csv(BASE / "smic_a_daily_qfq.csv"))
+    hk_rows = enrich_rows(read_csv(BASE / "smic_hk_daily_qfq.csv"))
     summaries = [
-        summary_for("A股", "688981.SH", "smic_a_daily.csv", a_rows),
-        summary_for("港股", "00981.HK", "smic_hk_daily.csv", hk_rows),
+        summary_for("A股", "688981.SH", "smic_a_daily_qfq.csv", a_rows),
+        summary_for("港股", "00981.HK", "smic_hk_daily_qfq.csv", hk_rows),
     ]
     by_market = {item["market"]: item for item in summaries}
     data = {
         "A股": {
             "code": "688981.SH",
-            "csv": "smic_a_daily.csv",
+            "csv": "smic_a_daily_qfq.csv",
             "rows": a_rows,
             "monthly": monthly_returns(a_rows),
             "summary": by_market["A股"],
         },
         "港股": {
             "code": "00981.HK",
-            "csv": "smic_hk_daily.csv",
+            "csv": "smic_hk_daily_qfq.csv",
             "rows": hk_rows,
             "monthly": monthly_returns(hk_rows),
             "summary": by_market["港股"],

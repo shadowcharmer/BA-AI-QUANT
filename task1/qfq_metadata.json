@@ -1,0 +1,32 @@
+[
+  {
+    "market": "A股",
+    "code": "688981.SH",
+    "input": "smic_a_daily.csv",
+    "output": "smic_a_daily_qfq.csv",
+    "factor_file": "smic_a_adj_factor.csv",
+    "rows": 237,
+    "start_date": "20250702",
+    "end_date": "20260702",
+    "latest_factor": "1",
+    "unique_factor_count": 1,
+    "changed_rows": 0,
+    "factor_status": "verified_identity",
+    "factor_source": "Tushare adj_factor, fetched 2026-07-10; all returned factors in 2025-07-02 to 2026-07-02 are 1.0."
+  },
+  {
+    "market": "港股",
+    "code": "00981.HK",
+    "input": "smic_hk_daily.csv",
+    "output": "smic_hk_daily_qfq.csv",
+    "factor_file": "smic_hk_adj_factor.csv",
+    "rows": 246,
+    "start_date": "20250702",
+    "end_date": "20260702",
+    "latest_factor": "1",
+    "unique_factor_count": 1,
+    "changed_rows": 0,
+    "factor_status": "identity_fallback_no_adjustment_applied",
+    "factor_source": "Tushare hk_adjfactor/hk_daily_adj returned permission error 40203 on 2026-07-10; identity factors are used and recorded for reproducibility."
+  }
+]

@@ -14,10 +14,10 @@
 
 计划使用以下两份 TASK1 数据文件：
 
-- A 股数据：`task1/smic_a_daily.csv`
-- 港股数据：`task1/smic_hk_daily.csv`
+- A 股数据：`task1/smic_a_daily_qfq.csv`
+- 港股数据：`task1/smic_hk_daily_qfq.csv`
 
-两份数据当前可识别字段一致：
+两份数据当前可识别字段一致，价格字段采用前复权口径，并保留 `raw_*` 与复权因子字段用于追溯：
 
 - `ts_code`：证券代码
 - `trade_date`：交易日期
@@ -223,7 +223,7 @@
 
 ## 9. 建议执行步骤
 
-1. 读取 `task1/smic_a_daily.csv` 和 `task1/smic_hk_daily.csv`。
+1. 读取 `task1/smic_a_daily_qfq.csv` 和 `task1/smic_hk_daily_qfq.csv`。
 2. 清理字段名中可能存在的 BOM 或不可见字符。
 3. 将 `trade_date` 转换为日期格式。
 4. 分别检查 A 股和港股的数据维度、日期范围、重复记录和字段类型。

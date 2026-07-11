@@ -34,8 +34,8 @@
 
 计划读取 TASK1 已保存数据：
 
-- A 股：`task1/smic_a_daily.csv`
-- 港股：`task1/smic_hk_daily.csv`
+- A 股：`task1/smic_a_daily_qfq.csv`
+- 港股：`task1/smic_hk_daily_qfq.csv`
 
 预期字段：
 

@@ -161,9 +161,9 @@ def read_csv_rows(path: Path) -> list[dict[str, Any]]:
 
 def example_rows(market: str) -> tuple[str, Path]:
     if market == "A股":
-        return "688981.SH", TASK1 / "smic_a_daily.csv"
+        return "688981.SH", TASK1 / "smic_a_daily_qfq.csv"
     if market == "港股":
-        return "00981.HK", TASK1 / "smic_hk_daily.csv"
+        return "00981.HK", TASK1 / "smic_hk_daily_qfq.csv"
     raise ValueError("市场类型错误。")
 
 

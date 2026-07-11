@@ -24,8 +24,8 @@
 - `stock_indicator_tool_server.py`：可选本地后端服务，用于动态下载数据和调用 MCP。
 - `stock_indicator_tool_config.example.json`：MCP server 和数据源配置示例。
 - `stock_indicator_tool_readme.md`：使用说明。
-- `smic_a_daily.csv`：内置 A 股示例数据。
-- `smic_hk_daily.csv`：内置港股示例数据。
+- `smic_a_daily_qfq.csv`：内置 A 股前复权示例数据。
+- `smic_hk_daily_qfq.csv`：内置港股前复权示例数据。
 - `assets/`：前端 JS/CSS，如需要拆分。
 
 ## 3. 总体架构

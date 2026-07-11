@@ -10,6 +10,13 @@ A股,change,涨跌额,0,0.0,237,float64
 A股,pct_chg,日涨跌幅(%),0,0.0,237,float64
 A股,vol,成交量,0,0.0,237,float64
 A股,amount,成交额,0,0.0,237,float64
+A股,adj_factor,A股复权因子,0,0.0,237,int64
+A股,qfq_factor,前复权调整比例,0,0.0,237,int64
+A股,raw_open,原始开盘价,0,0.0,237,float64
+A股,raw_high,原始最高价,0,0.0,237,float64
+A股,raw_low,原始最低价,0,0.0,237,float64
+A股,raw_close,原始收盘价,0,0.0,237,float64
+A股,raw_pre_close,原始前收盘价,0,0.0,237,float64
 A股,log_return,对数收益率,0,0.0,237,float64
 A股,amplitude_pct,日内振幅(%),0,0.0,237,float64
 A股,intraday_return_pct,日内收益率(%),0,0.0,237,float64
@@ -37,6 +44,13 @@ A股,amount_ma20_ratio,成交额相对20日均值倍数,19,0.08016877637130802,2
 港股,pct_chg,日涨跌幅(%),0,0.0,246,float64
 港股,vol,成交量,0,0.0,246,float64
 港股,amount,成交额,0,0.0,246,float64
+港股,cum_adjfactor,港股累计复权因子,0,0.0,246,int64
+港股,qfq_factor,前复权调整比例,0,0.0,246,int64
+港股,raw_open,原始开盘价,0,0.0,246,float64
+港股,raw_high,原始最高价,0,0.0,246,float64
+港股,raw_low,原始最低价,0,0.0,246,float64
+港股,raw_close,原始收盘价,0,0.0,246,float64
+港股,raw_pre_close,原始前收盘价,0,0.0,246,float64
 港股,log_return,对数收益率,0,0.0,246,float64
 港股,amplitude_pct,日内振幅(%),0,0.0,246,float64
 港股,intraday_return_pct,日内收益率(%),0,0.0,246,float64
