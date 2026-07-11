@@ -8,8 +8,9 @@ BA workshop weekly assignments and quantitative analysis artifacts.
 
 - `task1/`: SMIC A-share and H-share daily trading data dashboard.
 - `task2/`: SMIC data diagnostics, technical indicator analysis, and an interactive indicator tool.
+- `task3/`: Double moving-average strategy backtest dashboard, CLI engine, and sample data.
 
-Future assignments should follow the same naming pattern: `task2/`, `task3/`, `task4/`, etc.
+Future assignments should follow the same naming pattern: `task4/`, `task5/`, etc.
 
 ## Task 1
 
@@ -95,4 +96,43 @@ Then open:
 
 ```text
 http://127.0.0.1:8765/stock_indicator_tool.html
+```
+
+## Task 3
+
+Open `task3/double_ma_backtest_dashboard.html` in a browser to use the local double moving-average backtest dashboard.
+
+Included files:
+
+- `task3/README.md`: Detailed task 3 usage guide.
+- `task3/task3_double_ma_backtest_dashboard_spec.md`: Confirmed dashboard specification.
+- `task3/double_ma_backtest_dashboard.html`: Interactive local HTML dashboard.
+- `task3/double_ma_backtest_engine.py`: CLI backtest engine for reproducible runs.
+- `task3/double_ma_backtest_readme.md`: Additional usage notes.
+- `task3/download_byd_a_data.py`: Downloads BYD A-share daily data and generates quality reports.
+- `task3/sample_data/smic_a_daily_qfq.csv`: Bundled SMIC A-share front-adjusted example CSV.
+- `task3/sample_data/byd_a_daily.csv`: BYD A-share raw daily data.
+- `task3/sample_data/byd_a_daily_qfq.csv`: BYD A-share front-adjusted daily data.
+- `task3/sample_data/byd_a_adj_factor.csv`: Implied BYD front-adjustment factor data.
+- `task3/sample_data/byd_a_quality_report.md`: BYD data quality report.
+
+The dashboard supports:
+
+- Data quality checks and adjustment hints.
+- Configurable backtest range, initial cash, MA windows, cost settings, and trend filter.
+- Volume filter, position management, fixed/ATR stop loss, trailing stop, and drawdown control.
+- Buy/sell/add markers with tooltip details and interactive legends.
+- Price, moving-average, equity, and position charts.
+- Trade list, signal log, final position, performance metrics, and HTML/PDF report export.
+
+Run the CLI backtest with the bundled BYD data:
+
+```bash
+python3 -B task3/double_ma_backtest_engine.py task3/sample_data/byd_a_daily_qfq.csv --out-dir task3/exports_byd_default
+```
+
+Refresh BYD A-share data:
+
+```bash
+python3 -B task3/download_byd_a_data.py
 ```
