@@ -37,13 +37,13 @@ task4/
 task4/turtle_strategy_dashboard.html
 ```
 
-如果浏览器禁止 `file://` 页面自动读取示例 CSV，可以手动导入：
+页面已内置中芯国际 A 股前复权示例数据，打开后会自动加载。也可以手动导入其他 CSV，例如：
 
 ```text
 task4/sample_data/smic_a_daily_qfq.csv
 ```
 
-也可以通过本地静态服务器打开，页面会自动尝试加载默认示例数据：
+也可以通过本地静态服务器打开：
 
 ```bash
 python3 -m http.server 8000
