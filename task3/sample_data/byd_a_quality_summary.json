@@ -1,0 +1,19 @@
+{
+  "ts_code": "002594.SZ",
+  "name": "比亚迪",
+  "source": "Eastmoney kline API",
+  "adjustment": "前复权 fqt=1",
+  "start_date": "2023-07-12",
+  "end_date": "2026-07-10",
+  "trading_days": 726,
+  "duplicate_dates": 0,
+  "core_ohlcv_missing_values": 0,
+  "price_relation_anomaly_rows": 0,
+  "volume_anomaly_rows": 0,
+  "raw_qfq_aligned_dates": 726,
+  "qfq_changed_rows": 496,
+  "implied_factor_unique_count": 486,
+  "min_implied_qfq_factor": 0.31922156,
+  "max_implied_qfq_factor": 1.0,
+  "factor_rows": "726 rows written to byd_a_adj_factor.csv"
+}
