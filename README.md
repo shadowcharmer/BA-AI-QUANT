@@ -10,8 +10,9 @@ BA workshop weekly assignments and quantitative analysis artifacts.
 - `task2/`: SMIC data diagnostics, technical indicator analysis, and an interactive indicator tool.
 - `task3/`: Double moving-average strategy backtest dashboard, CLI engine, and sample data.
 - `task4/`: Turtle trading strategy backtest dashboard, CLI engine, and sample data.
+- `task5/`: Stock up/down classification models, reproducible Notebook, and ECharts dashboard.
 
-Future assignments should follow the same naming pattern: `task5/`, `task6/`, etc.
+Future assignments should follow the same naming pattern: `task6/`, `task7/`, etc.
 
 ## Task 1
 
@@ -163,4 +164,39 @@ Run the CLI backtest with the bundled SMIC data:
 
 ```bash
 python3 -B task4/turtle_backtest_engine.py task4/sample_data/smic_a_daily_qfq.csv --out-dir task4/exports_smic_default
+```
+
+## Task 5
+
+Open `task5/task5_stock_classification_dashboard.html` in a browser to view the stock up/down classification result dashboard.
+
+Included files:
+
+- `task5/README.md`: Detailed task 5 usage guide.
+- `task5/model_data_stock.csv`: Modeling dataset with `Date`, `Code`, `Y`, and factor columns.
+- `task5/task5_stock_classification_spec.md`: Confirmed notebook and dashboard specification.
+- `task5/task5_stock_classification.ipynb`: Step-by-step Notebook workflow.
+- `task5/task5_stock_classification_dashboard.html`: ECharts interactive HTML dashboard.
+- `task5/run_task5_analysis.py`: Rebuilds the Notebook, dashboard, and result CSV files.
+- `task5/outputs/model_metrics.csv`: Accuracy, Precision, Recall, F1-score, AUC, and confusion matrix results.
+- `task5/outputs/model_parameters.csv`: Key hyperparameters for all three models.
+- `task5/outputs/data_quality_summary.csv`: Data quality and missing-value summary.
+- `task5/outputs/train_test_summary.csv`: Time-ordered train/test split summary.
+- `task5/outputs/feature_summary.csv`: Modeling factor list and missing-value ratio.
+
+The workflow supports:
+
+- Data loading and data quality checks.
+- Strict `Date`-ordered train/test split to avoid future data leakage.
+- Feature selection from existing CSV factors only.
+- Logistic regression with `penalty="elasticnet"` and `solver="saga"`.
+- Decision tree classification.
+- Random forest classification with `max_depth=10` and `n_estimators=100`.
+- AUC, ROC, confusion matrix, Accuracy, Precision, Recall, and F1-score evaluation.
+- Interactive ECharts dashboard with clickable legends and Chinese model evaluations.
+
+Run the full task 5 generation workflow:
+
+```bash
+python3 -B task5/run_task5_analysis.py
 ```
