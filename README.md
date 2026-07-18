@@ -11,8 +11,9 @@ BA workshop weekly assignments and quantitative analysis artifacts.
 - `task3/`: Double moving-average strategy backtest dashboard, CLI engine, and sample data.
 - `task4/`: Turtle trading strategy backtest dashboard, CLI engine, and sample data.
 - `task5/`: Stock up/down classification models, reproducible Notebook, and ECharts dashboard.
+- `task6/`: Quarterly model-probability factor strategy, model comparison, backtest Notebook, and ECharts dashboard.
 
-Future assignments should follow the same naming pattern: `task6/`, `task7/`, etc.
+Future assignments should follow the same naming pattern: `task7/`, `task8/`, etc.
 
 ## Task 1
 
@@ -200,3 +201,68 @@ Run the full task 5 generation workflow:
 ```bash
 python3 -B task5/run_task5_analysis.py
 ```
+
+## Task 6
+
+Open `task6/task6_model_strategy_dashboard.html` in a browser to view the model-probability factor strategy dashboard.
+
+Included files:
+
+- `task6/README.md`: Detailed task 6 usage guide.
+- `task6/model_data.csv`: Quarterly modeling dataset with `Date`, `Code`, factor columns, and `Next_Ret`.
+- `task6/task6_model_strategy_spec.md`: Confirmed notebook, strategy, and dashboard specification.
+- `task6/task6_model_strategy.ipynb`: Step-by-step Notebook workflow.
+- `task6/task6_model_strategy_dashboard.html`: ECharts interactive HTML dashboard.
+- `task6/run_task6_model_strategy.py`: Rebuilds the Notebook, dashboard, and result CSV files.
+- `task6/outputs/data_overview.csv`: Dataset overview.
+- `task6/outputs/data_quality_summary.csv`: Field type, missing-value, and data quality summary.
+- `task6/outputs/label_distribution.csv`: Label distribution generated from `Next_Ret > 0`.
+- `task6/outputs/feature_summary.csv`: Modeling feature list, feature type, missing-value ratio, and train-set median fill value.
+- `task6/outputs/train_test_summary.csv`: Time-ordered quarterly train/test split summary.
+- `task6/outputs/model_parameters.csv`: Key hyperparameters for all three models.
+- `task6/outputs/model_metrics.csv`: Accuracy, Precision, Recall, F1-score, AUC, and confusion matrix results.
+- `task6/outputs/feature_importance.csv`: Logistic regression coefficients plus decision tree and random forest feature importance.
+- `task6/outputs/strategy_quarterly_returns.csv`: Quarterly return, turnover, cost, and capital curve for each strategy.
+- `task6/outputs/strategy_holdings.csv`: Quarterly holdings, model probability, weight, realized return, RSI, and trend filter values.
+- `task6/outputs/strategy_metrics.csv`: Strategy performance metrics.
+
+The workflow supports:
+
+- Data loading and data quality checks.
+- Strict quarterly time-ordered train/test split to avoid future data leakage.
+- Binary label construction from `Next_Ret > 0`.
+- Feature engineering from existing quarterly indicators, cross-sectional ranks, lagged historical returns, RSI, and trend filters.
+- Logistic regression with mixed L1/L2 regularization.
+- Decision tree classification.
+- Random forest classification with `max_depth=10` and `n_estimators=100`.
+- Accuracy, Precision, Recall, F1-score, AUC, ROC, and confusion matrix evaluation.
+- Model-probability factor strategy construction.
+- Quarterly top-3 stock selection using model probability, dual thresholds, RSI filter, trend filter, take-profit, and stop-loss rules.
+- Equal-weight and probability-weighted portfolio comparison for each model.
+- Full-market equal-weight and random top-3 baselines.
+- Core backtest metrics including final capital, cumulative return, annualized return, volatility, Sharpe ratio, max drawdown, win rate, profit/loss ratio, turnover, and total trading cost.
+- Interactive ECharts dashboard with clickable legends for ROC, net value, drawdown, and quarterly return charts.
+
+Run the full task 6 generation workflow:
+
+```bash
+python3 -B task6/run_task6_model_strategy.py
+```
+
+Current task 6 summary:
+
+| Model | Accuracy | Precision | Recall | F1-score | AUC |
+|---|---:|---:|---:|---:|---:|
+| Logistic regression | 0.5562 | 0.3669 | 0.7085 | 0.4835 | 0.6390 |
+| Decision tree | 0.5068 | 0.3286 | 0.6541 | 0.4374 | 0.5621 |
+| Random forest | 0.5469 | 0.3524 | 0.6511 | 0.4573 | 0.6052 |
+
+Current top backtest results:
+
+| Strategy | Final capital | Cumulative return | Sharpe ratio | Max drawdown |
+|---|---:|---:|---:|---:|
+| Random forest - equal weight | 133311.10 | 33.31% | 5.4327 | 0.00% |
+| Random forest - probability weighted | 132962.29 | 32.96% | 5.4744 | 0.00% |
+| Logistic regression - probability weighted | 117156.56 | 17.16% | 2.1031 | 0.00% |
+
+Task 6 uses quarterly data, so take-profit and stop-loss are approximated from single-quarter realized returns rather than intraday execution paths. Historical backtests do not represent future returns.
